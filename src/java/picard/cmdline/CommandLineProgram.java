@@ -163,11 +163,11 @@ public abstract class CommandLineProgram {
         }
 
         if (!QUIET) {
-            System.err.println("[" + new Date() + "] " + commandLine);
+            System.out.println("[" + new Date() + "] " + commandLine);
 
             // Output a one liner about who/where and what software/os we're running on
             try {
-            System.err.println("[" + new Date() + "] Executing as " +
+            System.out.println("[" + new Date() + "] Executing as " +
                                        System.getProperty("user.name") + "@" + InetAddress.getLocalHost().getHostName() +
                                        " on " + System.getProperty("os.name") + " " + System.getProperty("os.version") +
                                        " " + System.getProperty("os.arch") + "; " + System.getProperty("java.vm.name") +
@@ -189,8 +189,8 @@ public abstract class CommandLineProgram {
                     final Date endDate = new Date();
                     final double elapsedMinutes = (endDate.getTime() - startDate.getTime()) / (1000d * 60d);
                     final String elapsedString  = new DecimalFormat("#,##0.00").format(elapsedMinutes);
-                    System.err.println("[" + endDate + "] " + getClass().getName() + " done. Elapsed time: " + elapsedString + " minutes.");
-                    System.err.println("Runtime.totalMemory()=" + Runtime.getRuntime().totalMemory());
+                    System.out.println("[" + endDate + "] " + getClass().getName() + " done. Elapsed time: " + elapsedString + " minutes.");
+                    System.out.println("Runtime.totalMemory()=" + Runtime.getRuntime().totalMemory());
                     if (ret != 0 && CommandLineParser.hasWebDocumentation(this.getClass())) System.err.println(CommandLineParser.getFaqLink());
                 }
             }
