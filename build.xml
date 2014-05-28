@@ -37,7 +37,8 @@
     <property name="reports" value="dist/test"/>
     <property name="test.output" value="dist/test"/>
     <property name="htsjdk_lib_dir" value="${dist}/htsjdk_lib_dir"/>
-    <property name="htsjdk_git_url" value="https://github.com/samtools/htsjdk.git" />
+    <property name="htsjdk_git_url" value="https://github.com/nnordborg/htsjdk.git" />
+	<property name="htsjdk_git_branch" value="lorry" />
 
     <property name="javac.target" value="1.6"/>
     <property name="javac.debug" value="true"/>
@@ -120,6 +121,8 @@
     <target name="clone-htsjdk" description="Clone HTS-JDK sources from Sourceforge">
         <exec executable="git" failonerror="true">
             <arg value="clone"/>
+        	<arg value="-b" />
+        	<arg value="${htsjdk_git_branch}" />
             <arg value="${htsjdk_git_url}"/>
             <arg value="${htsjdk}"/>
         </exec>
