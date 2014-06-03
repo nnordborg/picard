@@ -97,7 +97,7 @@ public class MultiTileBclParser extends BclParser {
 
         @Override
         public void close() {
-            //underlyingIterator.close();
+            underlyingIterator.close();
         }
 
         @Override
