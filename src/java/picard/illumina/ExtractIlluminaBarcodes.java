@@ -29,6 +29,7 @@ import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.SequenceUtil;
 import htsjdk.samtools.util.StringUtil;
+import picard.PicardException;
 import picard.cmdline.CommandLineProgram;
 import picard.cmdline.Option;
 import picard.cmdline.StandardOptionDefinitions;
@@ -46,9 +47,13 @@ import picard.util.TabbedTextFileWithHeaderParser;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -133,8 +138,40 @@ public class ExtractIlluminaBarcodes extends CommandLineProgram {
             "the number available on the machine less NUM_PROCESSORS.")
     public int NUM_PROCESSORS = 1;
 
+    @Option(doc = "If set, this is the first tile to be processed (used for debugging).  Note that tiles are not processed" + 
+    		" in numerical order.", 
+    		optional = true) 
+ 	public Integer FIRST_TILE; 
+ 	
+    @Option(doc = "If set, process no more than this many tiles (used for debugging).", optional = true) 
+ 	public Integer TILE_LIMIT; 
+    
     private static final Log LOG = Log.getInstance(ExtractIlluminaBarcodes.class);
 
+    
+    /**
+     * A comparator for tile numbers, which are not necessarily ordered by the number's value.
+     */
+    public static final Comparator<Integer> TILE_NUMBER_COMPARATOR = new Comparator<Integer>() {
+        @Override
+        public int compare(final Integer integer1, final Integer integer2) {
+            final String s1 = integer1.toString();
+            final String s2 = integer2.toString();
+            // Because a the tile number is followed by a colon, a tile number that
+            // is a prefix of another tile number should sort after. (e.g. 10 sorts after 100).
+            if (s1.length() < s2.length()) {
+                if (s2.startsWith(s1)) {
+                    return 1;
+                }
+            } else if (s2.length() < s1.length()) {
+                if (s1.startsWith(s2)) {
+                    return -1;
+                }
+            }
+            return s1.compareTo(s2);
+        }
+    };
+    
     /** The read structure of the actual Illumina Run, i.e. the readStructure of the input data */
     private ReadStructure readStructure;
 
@@ -182,21 +219,63 @@ public class ExtractIlluminaBarcodes extends CommandLineProgram {
         LOG.info("Processing with " + numProcessors + " PerTileBarcodeExtractor(s).");
         final ExecutorService pool = Executors.newFixedThreadPool(numProcessors);
 
+        List<Integer> tiles = new ArrayList<Integer>(factory.getAvailableTiles());
+        // Since the first non-fixed part of the read name is the tile number, without preceding zeroes, 
+        // and the output is sorted by read name, process the tiles in this order. 
+        Collections.sort(tiles, TILE_NUMBER_COMPARATOR); 
+        if (FIRST_TILE != null) { 
+        	int i; 
+        	for (i = 0; i < tiles.size(); ++i) { 
+        		if (tiles.get(i).intValue() == FIRST_TILE.intValue()) { 
+        			tiles = tiles.subList(i, tiles.size()); 
+        			break; 
+        		} 
+        	} 
+        	if (tiles.get(0).intValue() != FIRST_TILE.intValue()) { 
+        		throw new PicardException("firstTile=" + FIRST_TILE + ", but that tile was not found."); 
+        	} 
+        } 
+        if (TILE_LIMIT != null && tiles.size() > TILE_LIMIT) { 
+        	tiles = tiles.subList(0, TILE_LIMIT); 
+        }
+        
         // TODO: This is terribly inefficient; we're opening a huge number of files via the extractor constructor and we never close them.
-        final List<PerTileBarcodeExtractor> extractors = new ArrayList<PerTileBarcodeExtractor>(factory.getAvailableTiles().size());
+        final List<PerTileBarcodeExtractor> extractors = new ArrayList<PerTileBarcodeExtractor>(tiles.size());
         for (final int tile : factory.getAvailableTiles()) {
-            final PerTileBarcodeExtractor extractor = new PerTileBarcodeExtractor(
-                    tile,
-                    getBarcodeFile(tile),
-                    barcodeToMetrics,
-                    noMatchMetric,
-                    factory,
-                    MINIMUM_BASE_QUALITY,
-                    MAX_NO_CALLS,
-                    MAX_MISMATCHES,
-                    MIN_MISMATCH_DELTA
-            );
-            extractors.add(extractor);
+        	File bcFile = getBarcodeFile(tile);
+        	if (tiles.contains(tile))
+        	{
+	            final PerTileBarcodeExtractor extractor = new PerTileBarcodeExtractor(
+	                    tile,
+	                    getBarcodeFile(tile),
+	                    barcodeToMetrics,
+	                    noMatchMetric,
+	                    factory,
+	                    MINIMUM_BASE_QUALITY,
+	                    MAX_NO_CALLS,
+	                    MAX_MISMATCHES,
+	                    MIN_MISMATCH_DELTA
+	            );
+	            extractors.add(extractor);
+        	}
+        	else
+        	{
+                // We need to create dummy files for all tiles even if 
+        		// FIRST_TILE and TILE_LIMIT has been specified since 
+        		// other tools (eg. IlluminaBasecallsToFastq) require that 
+        		// the files are present even if they are not used 
+        		// (assuming that the other tool has same value for FIRST_TILE and TILE_LIMIT) 
+        		OutputStream out = IOUtil.openFileForWriting(bcFile); 
+        		try 
+        		{ 
+        			out.write(1); // Need at least one byt since there is a check for zero filesize 
+        			out.close(); 
+        		} 
+        		catch (IOException ex) 
+        		{ 
+        			throw new PicardException("Could not write to file: " + bcFile, ex); 
+        		} 
+        	} 
         }
         try {
             for (final PerTileBarcodeExtractor extractor : extractors) {
