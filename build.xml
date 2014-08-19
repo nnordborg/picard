@@ -52,6 +52,7 @@
     </exec>
     <property name="repository.revision" value=""/>
     <property name="picard-version" value="1.115"/>
+    <property name="picard-forked-version" value="-1"/>
     <property name="command_tmp" value=".command_tmp"/>
     <property name="command-line-html-dir" value="${dist}/html"/>
     <property name="testng.verbosity" value="2"/>
@@ -238,13 +239,13 @@
     </target>
 
     <target name="picard-jar" depends="compile"
-            description="Builds picard-${picard-version}.jar for inclusion in other projects">
+            description="Builds picard-${picard-version}${picard-forked-version}.jar for inclusion in other projects">
         <mkdir dir="${dist}"/>
-        <jar destfile="${dist}/picard-${picard-version}.jar" compress="no">
+        <jar destfile="${dist}/picard-${picard-version}${picard-forked-version}.jar" compress="no">
             <fileset dir="${classes}" includes="picard/**/*.*"/>
             <fileset dir="${src.scripts}" includes="**/*.R"/>
             <manifest>
-                <attribute name="Implementation-Version" value="${picard-version}(${repository.revision})"/>
+                <attribute name="Implementation-Version" value="${picard-version}${picard-forked-version}(${repository.revision})"/>
                 <attribute name="Implementation-Vendor" value="Broad Institute"/>
             </manifest>
         </jar>
@@ -409,12 +410,12 @@
     <!-- ALL -->
     <target name="all" depends="compile, package-commands, document-standard-options, copy-html, build-timestamp"
             description="Default build target">
-        <zip zipfile="${dist}/picard-tools-${picard-version}.zip">
-            <zipfileset dir="${dist}" includes="*.jar" prefix="picard-tools-${picard-version}"/>
-            <zipfileset dir="${htsjdk_lib_dir}" includes="htsjdk-*.jar" prefix="picard-tools-${picard-version}"/>
+        <zip zipfile="${dist}/picard-tools-${picard-version}${picard-forked-version}.zip">
+            <zipfileset dir="${dist}" includes="*.jar" prefix="picard-tools-${picard-version}${picard-forked-version}"/>
+            <zipfileset dir="${htsjdk_lib_dir}" includes="htsjdk-*.jar" prefix="picard-tools-${picard-version}${picard-forked-version}"/>
             <zipfileset dir="${lib}" includes="snappy*.jar"/>
             <!-- distribute libJniDeflater.so in same directory as jarfiles-->
-            <zipfileset dir="${lib}/jni" includes="*" prefix="picard-tools-${picard-version}"/>
+            <zipfileset dir="${lib}/jni" includes="*" prefix="picard-tools-${picard-version}${picard-forked-version}"/>
         </zip>
     </target>
 
@@ -445,7 +446,7 @@
                 <manifest>
                     <attribute name="Implementation-Title" value="@{title}"/>
                     <attribute name="Main-Class" value="@{main-class}"/>
-                    <attribute name="Implementation-Version" value="${picard-version}(${repository.revision})"/>
+                    <attribute name="Implementation-Version" value="${picard-version}${picard-forked-version}(${repository.revision})"/>
                     <attribute name="Implementation-Vendor" value="Broad Institute"/>
                 </manifest>
             </jar>
@@ -462,7 +463,7 @@
                   output="${command-line-html-dir}/program_usage/standard-options.shtml"
                   failonerror="true">
                 <classpath>
-                    <pathelement location="${dist}/picard-${picard-version}.jar"/>
+                    <pathelement location="${dist}/picard-${picard-version}${picard-forked-version}.jar"/>
                     <pathelement location="${htsjdk_lib_dir}/htsjdk-${htsjdk-version}.jar"/>
                 </classpath>
             </java>
@@ -490,7 +491,7 @@
                   output="${command-line-html-dir}/program_usage/@{title}.shtml"
                   failonerror="true">
                 <classpath>
-                    <pathelement location="${dist}/picard-${picard-version}.jar"/>
+                    <pathelement location="${dist}/picard-${picard-version}${picard-forked-version}.jar"/>
                     <pathelement location="${htsjdk_lib_dir}/htsjdk-${htsjdk-version}.jar"/>
                 </classpath>
                 <arg value="@{main-class}"/>
