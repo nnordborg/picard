@@ -75,6 +75,7 @@ public class IlluminaFileUtil {
     private final File intensityDir;
     private final int lane;
 
+    private final File tileMetrics;
     private final File tileMetricsOut;
     private final Map<SupportedIlluminaFormat, ParameterizedFileUtil> utils = new HashMap<SupportedIlluminaFormat, ParameterizedFileUtil>();
 
@@ -93,6 +94,7 @@ public class IlluminaFileUtil {
         this.intensityLaneDir = new File(intensityDir, longLaneStr(lane));
         final File interopDir = new File(dataDir.getParentFile(), "InterOp");
         tileMetricsOut = new File(interopDir, "TileMetricsOut.bin");
+        tileMetrics = new File(interopDir, "TileMetrics.bin");
     }
 
 
@@ -166,11 +168,14 @@ public class IlluminaFileUtil {
      * Return the list of tiles we would expect for this lane based on the metrics found in InterOp/TileMetricsOut.bin
      */
     public List<Integer> getExpectedTiles() {
-        IOUtil.assertFileIsReadable(tileMetricsOut);
+        if (tileMetricsOut.exists()) IOUtil.assertFileIsReadable(tileMetricsOut);
+        if (tileMetrics.exists()) IOUtil.assertFileIsReadable(tileMetrics);
+        
+        File tm = tileMetrics.length() > tileMetricsOut.length() ? tileMetrics : tileMetricsOut;
         //Used just to ensure predictable ordering
         final TreeSet<Integer> expectedTiles = new TreeSet<Integer>();
 
-        final Iterator<TileMetricsOutReader.IlluminaTileMetrics> tileMetrics = new TileMetricsOutReader(tileMetricsOut);
+        final Iterator<TileMetricsOutReader.IlluminaTileMetrics> tileMetrics = new TileMetricsOutReader(tm);
         while (tileMetrics.hasNext()) {
             final TileMetricsOutReader.IlluminaTileMetrics tileMetric = tileMetrics.next();
 
