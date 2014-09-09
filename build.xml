@@ -128,6 +128,7 @@
     </target>
 
     <target name="clone-htsjdk" description="Clone HTS-JDK sources from Sourceforge">
+    	<echo>git clone ${htsjdk_git_branch} ${htsjdk_git_url}</echo>
         <exec executable="git" failonerror="true">
             <arg value="clone"/>
         	<arg value="-b" />
