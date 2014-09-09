@@ -27,18 +27,25 @@ package picard.sam;
 import htsjdk.samtools.BAMRecordCodec;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SAMFileReader;
+import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SamReaderFactory;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordQueryNameComparator;
 import htsjdk.samtools.SAMRecordUtil;
 import htsjdk.samtools.SAMTag;
+import htsjdk.samtools.filter.FilteringIterator;
+import htsjdk.samtools.filter.SamRecordFilter;
+import htsjdk.samtools.util.CloserUtil;
+import htsjdk.samtools.util.FastqQualityFormat;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Log;
 import htsjdk.samtools.util.PeekableIterator;
 import htsjdk.samtools.util.ProgressLogger;
+import htsjdk.samtools.util.QualityEncodingDetector;
+import htsjdk.samtools.util.SolexaQualityConverter;
 import htsjdk.samtools.util.SortingCollection;
 import picard.PicardException;
 import picard.cmdline.CommandLineProgram;
@@ -50,8 +57,12 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Reverts a SAM file by optionally restoring original quality scores and by removing
@@ -135,7 +146,7 @@ public class RevertSam extends CommandLineProgram {
         IOUtil.assertFileIsWritable(OUTPUT);
 
         final boolean sanitizing = SANITIZE;
-        final SAMFileReader in = new SAMFileReader(INPUT, true);
+        final SamReader in = SamReaderFactory.makeDefault().validationStringency(VALIDATION_STRINGENCY).open(INPUT);
         final SAMFileHeader inHeader = in.getFileHeader();
 
         // If we are going to override SAMPLE_ALIAS or LIBRARY_NAME, make sure all the read
@@ -216,8 +227,35 @@ public class RevertSam extends CommandLineProgram {
             out.close();
         }
         else {
+
             long total = 0, discarded = 0;
             final PeekableIterator<SAMRecord> iterator = new PeekableIterator<SAMRecord>(sorter.iterator());
+            final Map<SAMReadGroupRecord, FastqQualityFormat> readGroupToFormat = new HashMap<SAMReadGroupRecord, FastqQualityFormat>();
+
+            // Figure out the quality score encoding scheme for each read group.
+            for (final SAMReadGroupRecord rg : inHeader.getReadGroups()) {
+                final SamReader reader =  SamReaderFactory.makeDefault().validationStringency(VALIDATION_STRINGENCY).open(INPUT);
+                final SamRecordFilter filter = new SamRecordFilter() {
+                    public boolean filterOut(final SAMRecord rec) {
+                        return !rec.getReadGroup().getId().equals(rg.getId());
+                    }
+                    public boolean filterOut(final SAMRecord first, final SAMRecord second) {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+                readGroupToFormat.put(rg, QualityEncodingDetector.detect(QualityEncodingDetector.DEFAULT_MAX_RECORDS_TO_ITERATE, new FilteringIterator(reader.iterator(), filter)));
+                CloserUtil.close(reader);
+            }
+            final Set<FastqQualityFormat> formats = new HashSet<FastqQualityFormat>(readGroupToFormat.values());
+            for(final SAMReadGroupRecord r : readGroupToFormat.keySet()) {
+                log.info("Detected quality format for " + r.getReadGroupId() + ": " + readGroupToFormat.get(r));
+            }
+            if (formats.contains(FastqQualityFormat.Solexa)) {
+                log.error("No quality score encoding conversion implemented for " + FastqQualityFormat.Solexa);
+                return -1;
+            }
+
+
             final ProgressLogger sanitizerProgress = new ProgressLogger(log, 1000000, "Sanitized");
 
             readNameLoop: while (iterator.hasNext()) {
@@ -258,6 +296,14 @@ public class RevertSam extends CommandLineProgram {
 
                 // If we've made it this far spit the records into the output!
                 for (final SAMRecord rec : recs) {
+                    // The only valid quality score encoding scheme is standard; if it's not standard, change it.
+                    final FastqQualityFormat recordFormat = readGroupToFormat.get(rec.getReadGroup());
+                    if (!recordFormat.equals(FastqQualityFormat.Standard)) {
+                        final byte quals[] = rec.getBaseQualities();
+                        for (int i = 0; i < quals.length; i++) {
+                            quals[i] -= SolexaQualityConverter.ILLUMINA_TO_PHRED_SUBTRAHEND;
+                        }
+                    }
                     out.addAlignment(rec);
                     sanitizerProgress.record(rec);
                 }

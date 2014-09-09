@@ -109,7 +109,7 @@ public class CommandLineParser {
     public static String getStandardUsagePreamble(final Class mainClass) {
         return "USAGE: " + mainClass.getSimpleName() + " [options]\n\n" +
                 (hasWebDocumentation(mainClass) ?
-                        "Documentation: http://picard.sourceforge.net/command-line-overview.shtml#" +
+                        "Documentation: http://broadinstitute.github.io/picard/command-line-overview.html#" +
                                 mainClass.getSimpleName() + "\n\n"
                         : "");
     }
@@ -117,7 +117,7 @@ public class CommandLineParser {
     /***
      * Determines if a class has web documentation based on its package name
      * @param clazz
-     * @return
+     * @return true if the class has web documentation, false otherwise
      */
     public static boolean hasWebDocumentation(final Class clazz) {
         for(final String pkg : PACKAGES_WITH_WEB_DOCUMENTATION) {
@@ -129,11 +129,10 @@ public class CommandLineParser {
     }
 
     /***
-     * Returns the link to a FAQ
-     * @return
+     * @return the link to a FAQ
      */
     public static String getFaqLink() {
-        return "To get help, see http://picard.sourceforge.net/index.shtml#GettingHelp";
+        return "To get help, see http://broadinstitute.github.io/picard/index.html#GettingHelp";
     }
 
     /**
@@ -335,7 +334,7 @@ public class CommandLineParser {
 
     public void htmlUsage(final PrintStream stream, final String programName, final boolean printCommon) {
         // TODO: Should HTML escape usage preamble and option usage, including line breaks
-        stream.println("<a name=\"" + programName + "\"/>");
+        stream.println("<a id=\"" + programName + "\"/>");
         stream.println("<h3>" + programName + "</h3>");
         stream.println("<p>" + htmlEscape(usagePreamble) + "</p>");
         boolean hasOptions = false;
