@@ -122,7 +122,7 @@ public class CheckIlluminaDirectory extends CommandLineProgram {
             final int numFailures = verifyLane(fileUtil, expectedTiles, expectedCycles, DATA_TYPES, FAKE_FILES);
 
             if (numFailures > 0) {
-                log.info("Lane " + lane + " FAILED " + " Total Errors: " + numFailures);
+                log.error("Lane " + lane + " FAILED " + " Total Errors: " + numFailures);
                 failingLanes.add(lane);
                 totalFailures += numFailures;
             } else {
@@ -135,7 +135,7 @@ public class CheckIlluminaDirectory extends CommandLineProgram {
             log.info("SUCCEEDED!  All required files are present and non-empty.");
         } else {
             status = totalFailures;
-            log.info("FAILED! There were " + totalFailures + " in the following lanes: " + StringUtil
+            log.error("FAILED! There were " + totalFailures + " in the following lanes: " + StringUtil
                     .join(", ", failingLanes));
         }
 
@@ -211,7 +211,7 @@ public class CheckIlluminaDirectory extends CommandLineProgram {
 
                 }
             }
-            log.info("Could not find a format with available files for the following data types: " + StringUtil
+            log.error("Could not find a format with available files for the following data types: " + StringUtil
                     .join(", ", new ArrayList<IlluminaDataType>(unmatchedDataTypes)));
             numFailures += unmatchedDataTypes.size();
         }
@@ -227,7 +227,7 @@ public class CheckIlluminaDirectory extends CommandLineProgram {
             }
             numFailures += failures.size();
             for (final String failure : failures) {
-                log.info(failure);
+                log.error(failure);
             }
         }
 
