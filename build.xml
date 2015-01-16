@@ -245,9 +245,9 @@
     </target>
 
     <target name="picard-jar" depends="compile"
-            description="Builds picard-${picard-version}${picard-forked-version}.jar for inclusion in other projects">
+            description="Builds the main executable picard.jar">
         <mkdir dir="${dist}"/>
-        <jar destfile="${dist}/picard-${picard-version}${picard-forked-version}.jar" compress="no">
+        <jar destfile="${dist}/picard.jar" compress="no">
             <fileset dir="${classes}" includes="picard/**/*.*, META-INF/**/*"/>
             <fileset dir="${src.scripts}" includes="**/*.R"/>
             <fileset dir="${htsjdk-classes}" includes ="${htsjdk}/*/**/*.*"/>
@@ -263,7 +263,7 @@
                 <include name="**/*.jar"/>
             </fileset>
             <manifest>
-                <attribute name="Implementation-Version" value="${picard-version}(${repository.revision})"/>
+                <attribute name="Implementation-Version" value="${picard-version}${picard-forked-version}(${repository.revision})"/>
                 <attribute name="Implementation-Vendor" value="Broad Institute"/>
                 <attribute name="Main-Class" value="picard.cmdline.PicardCommandLine"/>
                 <attribute name="Implementation-Title" value="PICARD Tools"/>
@@ -453,8 +453,7 @@
                   output="${command-line-html-dir}/program_usage/standard-options.html"
                   failonerror="true">
                 <classpath>
-                    <pathelement location="${dist}/picard-${picard-version}${picard-forked-version}.jar"/>
-                    <pathelement location="${htsjdk_lib_dir}/htsjdk-${htsjdk-version}.jar"/>
+                    <pathelement location="${dist}/picard.jar"/>
                 </classpath>
             </java>
         </sequential>
@@ -475,8 +474,7 @@
                   output="${command-line-html-dir}/program_usage/@{title}.html"
                   failonerror="true">
                 <classpath>
-                    <pathelement location="${dist}/picard-${picard-version}${picard-forked-version}.jar"/>
-                    <pathelement location="${htsjdk_lib_dir}/htsjdk-${htsjdk-version}.jar"/>
+                    <pathelement location="${dist}/picard.jar"/>
                 </classpath>
                 <arg value="@{main-class}"/>
             </java>
