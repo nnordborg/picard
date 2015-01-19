@@ -357,6 +357,11 @@ public class IlluminaBasecallsToSam extends CommandLineProgram {
         if (barcodeSamWriterMap.isEmpty()) {
             throw new PicardException("LIBRARY_PARAMS(BARCODE_PARAMS) file " + LIBRARY_PARAMS + " does have any data rows.");
         }
+        if (!barcodeSamWriterMap.containsKey(null))
+        {
+        	// If 'N' has not been mapped, ignore all rows with unknown barcodes
+        	barcodeSamWriterMap.put(null, new NullSAMFileWriterWrapper());
+        }
         libraryParamsParser.close();
     }
 
@@ -473,6 +478,23 @@ public class IlluminaBasecallsToSam extends CommandLineProgram {
         }
     }
 
+    private static class NullSAMFileWriterWrapper
+        extends SAMFileWriterWrapper {
+
+        private NullSAMFileWriterWrapper() {
+        	super(null);
+        }
+
+        @Override
+        public void write(final SAMRecordsForCluster records) {
+        }
+
+        @Override
+        public void close() {
+        }
+   }
+
+    
     static class SAMRecordsForCluster {
         final SAMRecord[] records;
 

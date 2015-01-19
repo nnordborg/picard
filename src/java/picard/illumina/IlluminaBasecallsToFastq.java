@@ -305,6 +305,11 @@ public class IlluminaBasecallsToFastq extends CommandLineProgram {
         if (barcodeFastqWriterMap.isEmpty()) {
             throw new PicardException("MULTIPLEX_PARAMS file " + MULTIPLEX_PARAMS + " does have any data rows.");
         }
+        if (!barcodeFastqWriterMap.containsKey(null))
+        {
+        	// If 'N' has not been mapped, ignore all rows with unknown barcodes
+        	barcodeFastqWriterMap.put(null, new NullFastqRecordsWriter());
+        }
         libraryParamsParser.close();
     }
 
@@ -370,6 +375,22 @@ public class IlluminaBasecallsToFastq extends CommandLineProgram {
             for (final FastqWriter writer : barcodeWriters) {
                 writer.close();
             }
+        }
+    }
+    
+    // Simply ignore everything
+    private static class NullFastqRecordsWriter extends FastqRecordsWriter {
+    	
+    	public NullFastqRecordsWriter() {
+    		super(null, null);
+		}
+    	
+        @Override
+        public void write(final FastqRecordsForCluster records) {
+        }
+
+        @Override
+        public void close() {
         }
     }
 
