@@ -13,8 +13,8 @@ public class PerTileFileUtil extends ParameterizedFileUtil {
     private final IlluminaFileMap fileMap;
 
     public PerTileFileUtil(final String extension, final File base,
-                           final FileFaker faker, final int lane) {
-        super(true, extension, base, faker, lane);
+                           final FileFaker faker, final int lane, boolean allowZeroSizeFiles) {
+        super(true, extension, base, faker, lane, allowZeroSizeFiles);
         this.fileMap = getTiledFiles(base, matchPattern);
         if (fileMap.size() > 0) {
             this.tiles = Collections.unmodifiableList(new ArrayList<Integer>(this.fileMap.keySet()));

@@ -23,7 +23,7 @@ public abstract class MultiTileFileUtil<OUTPUT_RECORD extends IlluminaData> exte
 
     MultiTileFileUtil(final String extension, final File base, final File bciDir, final FileFaker fileFaker,
                       final int lane) {
-        super(false, extension, base, fileFaker, lane);
+        super(false, extension, base, fileFaker, lane, false);
         bci = new File(bciDir, "s_" + lane + ".bci");
         if (bci.exists()) {
             tileIndex = new TileIndex(bci);

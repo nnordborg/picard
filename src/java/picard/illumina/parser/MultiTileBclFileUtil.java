@@ -20,7 +20,7 @@ public class MultiTileBclFileUtil extends ParameterizedFileUtil {
     MultiTileBclFileUtil(final File basecallLaneDir, final int lane) {
         // Since these file names do not contain lane number, first two args to ctor are the same.
         super("^(\\d{4}).bcl.bgzf$", ".bcl.bgzf", basecallLaneDir,
-                new MultiTileBclFileFaker(), lane);
+                new MultiTileBclFileFaker(), lane, false);
         this.basecallLaneDir = basecallLaneDir;
         bci = new File(basecallLaneDir, "s_" + lane + ".bci");
         // Do this once rather than when deciding if these files exist and again later.

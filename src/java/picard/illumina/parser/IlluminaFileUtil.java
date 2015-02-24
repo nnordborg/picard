@@ -113,8 +113,8 @@ public class IlluminaFileUtil {
         if (parameterizedFileUtil == null) {
             switch (format) {
                 case Bcl:
-                    final ParameterizedFileUtil bclFileUtil = new PerTilePerCycleFileUtil(".bcl", basecallLaneDir, new BclFileFaker(), lane);
-                    final ParameterizedFileUtil gzBclFileUtil = new PerTilePerCycleFileUtil(".bcl.gz", basecallLaneDir, new BclFileFaker(), lane);
+                    final ParameterizedFileUtil bclFileUtil = new PerTilePerCycleFileUtil(".bcl", basecallLaneDir, new BclFileFaker(), lane, false);
+                    final ParameterizedFileUtil gzBclFileUtil = new PerTilePerCycleFileUtil(".bcl.gz", basecallLaneDir, new BclFileFaker(), lane, false);
                     if (bclFileUtil.filesAvailable() && !gzBclFileUtil.filesAvailable()) {
                         parameterizedFileUtil = bclFileUtil;
                     } else if (!bclFileUtil.filesAvailable() && gzBclFileUtil.filesAvailable()) {
@@ -128,23 +128,23 @@ public class IlluminaFileUtil {
                     utils.put(SupportedIlluminaFormat.Bcl, parameterizedFileUtil);
                     break;
                 case Locs:
-                    parameterizedFileUtil = new PerTileFileUtil(".locs", intensityLaneDir, new LocsFileFaker(), lane);
+                    parameterizedFileUtil = new PerTileFileUtil(".locs", intensityLaneDir, new LocsFileFaker(), lane, false);
                     utils.put(SupportedIlluminaFormat.Locs, parameterizedFileUtil);
                     break;
                 case Clocs:
-                    parameterizedFileUtil = new PerTileFileUtil(".clocs", intensityLaneDir, new ClocsFileFaker(), lane);
+                    parameterizedFileUtil = new PerTileFileUtil(".clocs", intensityLaneDir, new ClocsFileFaker(), lane, false);
                     utils.put(SupportedIlluminaFormat.Clocs, parameterizedFileUtil);
                     break;
                 case Pos:
-                    parameterizedFileUtil = new PerTileFileUtil("_pos.txt", intensityDir, new PosFileFaker(), lane);
+                    parameterizedFileUtil = new PerTileFileUtil("_pos.txt", intensityDir, new PosFileFaker(), lane, false);
                     utils.put(SupportedIlluminaFormat.Pos, parameterizedFileUtil);
                     break;
                 case Filter:
-                    parameterizedFileUtil = new PerTileFileUtil(".filter", basecallLaneDir, new FilterFileFaker(), lane);
+                    parameterizedFileUtil = new PerTileFileUtil(".filter", basecallLaneDir, new FilterFileFaker(), lane, false);
                     utils.put(SupportedIlluminaFormat.Filter, parameterizedFileUtil);
                     break;
                 case Barcode:
-                    parameterizedFileUtil = new PerTileFileUtil("_barcode.txt", barcodeDir != null ? barcodeDir : basecallDir, new BarcodeFileFaker(), lane);
+                    parameterizedFileUtil = new PerTileFileUtil("_barcode.txt", barcodeDir != null ? barcodeDir : basecallDir, new BarcodeFileFaker(), lane, true);
                     utils.put(SupportedIlluminaFormat.Barcode, parameterizedFileUtil);
                     break;
                 case MultiTileFilter:

@@ -24,8 +24,8 @@ public class PerTilePerCycleFileUtil extends ParameterizedFileUtil {
     private final Set<Integer> detectedCycles = new TreeSet<Integer>();
 
     public PerTilePerCycleFileUtil(final String extension,
-                                   final File base, final FileFaker faker, final int lane) {
-        super(true, extension, base, faker, lane);
+                                   final File base, final FileFaker faker, final int lane, boolean allowZeroSizeFiles) {
+        super(true, extension, base, faker, lane, allowZeroSizeFiles);
         //sideEffect, assigned to numCycles
         this.cycleFileMap = getPerTilePerCycleFiles();
     }

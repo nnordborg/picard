@@ -172,7 +172,7 @@ public class IlluminaDataProviderFactory {
             throw new PicardException("Could not find a format with available files for the following data types: " + StringUtil.join(", ", new ArrayList<IlluminaDataType>(unmatchedDataTypes)));
         }
 
-        log.debug("The following file formats will be used by IlluminaDataProvider: " + StringUtil.join("," + formatToDataTypes.keySet()));
+        log.debug("The following file formats will be used by IlluminaDataProvider: " + StringUtil.join(",", formatToDataTypes.keySet()));
 
         availableTiles = fileUtil.getActualTiles(new ArrayList<SupportedIlluminaFormat>(formatToDataTypes.keySet()));
         if (availableTiles.isEmpty()) {

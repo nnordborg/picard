@@ -43,10 +43,11 @@ public abstract class ParameterizedFileUtil {
      */
     protected final File base;
     protected final FileFaker faker;
+    protected final boolean allowZeroSizeFiles;
 
     public ParameterizedFileUtil(final boolean laneTileRegex, final String extension, final File base,
-                                 final FileFaker faker, final int lane) {
-        this(extension, base, faker, lane);
+                                 final FileFaker faker, final int lane, boolean allowZeroSizeFiles) {
+        this(extension, base, faker, lane, allowZeroSizeFiles);
         if (laneTileRegex) {
             matchPattern = Pattern.compile(escapePeriods(makeLaneTileRegex(processTxtExtension(extension), lane)));
         } else {
@@ -55,17 +56,18 @@ public abstract class ParameterizedFileUtil {
     }
 
     public ParameterizedFileUtil(final String pattern, final String extension, final File base, final FileFaker faker,
-                                 final int lane) {
-        this(extension, base, faker, lane);
+                                 final int lane, boolean allowZeroSizeFiles) {
+        this(extension, base, faker, lane, allowZeroSizeFiles);
         this.matchPattern = Pattern.compile(pattern);
     }
 
     private ParameterizedFileUtil(final String extension, final File base, final FileFaker faker,
-                                  final int lane) {
+                                  final int lane, boolean allowZeroSizeFiles) {
         this.faker = faker;
         this.extension = extension;
         this.base = base;
         this.lane = lane;
+        this.allowZeroSizeFiles = allowZeroSizeFiles;
     }
 
     /**
@@ -162,7 +164,7 @@ public abstract class ParameterizedFileUtil {
             IOUtil.assertDirectoryIsReadable(baseDirectory);
             final File[] files = IOUtil.getFilesMatchingRegexp(baseDirectory, pattern);
             for (final File file : files) {
-                if (file.length() > 0) {
+                if (file.length() >= (allowZeroSizeFiles ? 0 : 1)) {
                     fileMap.put(fileToTile(file.getName()), file);
                 }
             }
