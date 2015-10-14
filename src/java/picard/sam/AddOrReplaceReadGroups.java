@@ -112,6 +112,7 @@ public class AddOrReplaceReadGroups extends CommandLineProgram {
         final ProgressLogger progress = new ProgressLogger(log);
         for (final SAMRecord read : in) {
             read.setAttribute(SAMTag.RG.name(), RGID);
+            read.setAttribute(SAMTag.LB.name(), RGLB);
             outWriter.addAlignment(read);
             progress.record(read);
         }
